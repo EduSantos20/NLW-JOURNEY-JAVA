@@ -30,7 +30,7 @@ public class Trip {
   @Column(nullable = false)
   private String destination;
   
-  @Column(name = "start_at", nullable = false)
+  @Column(name = "starts_at", nullable = false)
   private LocalDateTime startsAt;
 
   @Column(name = "ends_at", nullable = false)
