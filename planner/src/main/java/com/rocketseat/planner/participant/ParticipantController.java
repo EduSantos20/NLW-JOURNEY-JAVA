@@ -21,10 +21,10 @@ public class ParticipantController {
 
   @PostMapping("/{id}/confirm")
   public ResponseEntity<Participant> confirmParticipant(@PathVariable UUID id, @RequestBody ParticipantRequestPayload payload){
-    Optional<Participant> participants = this.repository.findById(id);
+    Optional<Participant> participant = this.repository.findById(id);
 
-    if (participants.isPresent()) {
-      Participant rawParticipant = participants.get();
+    if (participant.isPresent()) {
+      Participant rawParticipant = participant.get();
       rawParticipant.setIsConfirmed(true);
       rawParticipant.setEmail(payload.name());
       rawParticipant.setName(payload.email());
