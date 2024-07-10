@@ -22,7 +22,23 @@ public class ParticipantService {
 
   }
 
+  public ParticipantCreateResponse registerParticipantToEvent(String email, Trip trip) {
+    Participant newParticipant = new Participant(email, trip);
+    this.repository.save(newParticipant);
+
+    return new ParticipantCreateResponse(newParticipant.getId());
+  }
+
   public void triggerConfirmationEmailToParticipants(UUID tripID) {
 
   }
+
+  public void triggerConfirmationEmailToParticipants(String email) {
+
+  }
+
+  public List<ParticipantData> getAllParticipantsFromEvent(UUID tripId) {
+    return this.repository.findByTripId(tripId).stream().map(participant -> new ParticipantData(participant.getId(),participant.getName(), participant.getEmail(),participant.getIsConfirmed())).toList();
+  }
+
 }

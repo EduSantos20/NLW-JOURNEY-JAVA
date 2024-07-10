@@ -2,6 +2,7 @@ package com.rocketseat.planner.Trip;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rocketseat.planner.participant.Participant;
+import com.rocketseat.planner.participant.ParticipantCreateResponse;
+import com.rocketseat.planner.participant.ParticipantData;
+import com.rocketseat.planner.participant.ParticipantRequestPayload;
 import com.rocketseat.planner.participant.ParticipantService;
 
 @RestController
@@ -28,7 +33,7 @@ public class TripController {
   private TripRepository repository;
 
   @PostMapping
-  public ResponseEntity <TripCreateResponse> createTrip (@RequestBody TripRequestPayload payload){
+  public ResponseEntity<TripCreateResponse> createTrip(@RequestBody TripRequestPayload payload) {
     Trip newTrip = new Trip(payload);
 
     this.repository.save(newTrip);
@@ -38,7 +43,7 @@ public class TripController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity <Trip> getTripDetails(@PathVariable UUID id){
+  public ResponseEntity<Trip> getTripDetails(@PathVariable UUID id) {
     Optional<Trip> trip = this.repository.findById(id);
 
     return trip.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -48,10 +53,10 @@ public class TripController {
   public ResponseEntity<Trip> updateTrip(@PathVariable UUID id, @RequestBody TripRequestPayload payload) {
     Optional<Trip> trip = this.repository.findById(id);
 
-    if(trip.isPresent()){
+    if (trip.isPresent()) {
       Trip rowTrip = trip.get();
-      rowTrip.setEndsAt(LocalDateTime.parse(payload.ends_at(),DateTimeFormatter.ISO_DATE_TIME));
-      rowTrip.setStartsAt(LocalDateTime.parse(payload.starts_at(),DateTimeFormatter.ISO_DATE_TIME));
+      rowTrip.setEndsAt(LocalDateTime.parse(payload.ends_at(), DateTimeFormatter.ISO_DATE_TIME));
+      rowTrip.setStartsAt(LocalDateTime.parse(payload.starts_at(), DateTimeFormatter.ISO_DATE_TIME));
       rowTrip.setDestination(payload.destination());
 
       this.repository.save(rowTrip);
@@ -78,5 +83,32 @@ public class TripController {
 
     return ResponseEntity.notFound().build();
   }
+
+  @PostMapping("/{id}/invite")
+  public ResponseEntity<ParticipantCreateResponse> inviteParticipant(@PathVariable UUID id,
+      @RequestBody ParticipantRequestPayload payload) {
+    Optional<Trip> trip = this.repository.findById(id);
+
+    if (trip.isPresent()) {
+      Trip rowTrip = trip.get();
+
+      ParticipantCreateResponse participantResponse = this.participantService
+          .registerParticipantToEvent(payload.email(), rowTrip);
+
+      if (rowTrip.getIsConfirmed())
+        this.participantService.triggerConfirmationEmailToParticipants(payload.email());
+
+      return ResponseEntity.ok(participantResponse);
+    }
+
+    return ResponseEntity.notFound().build();
+  }
+
+  @GetMapping("/{id}/participants")
+  public ResponseEntity<List<ParticipantData>> getAllParticipants(@PathVariable UUID id) {
+    List<ParticipantData> participants = this.participantService.getAllParticipantsFromEvent(id);
+
+    return ResponseEntity.ok(participants);
+  };
 
 }

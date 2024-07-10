@@ -26,8 +26,7 @@ public class ParticipantController {
     if (participant.isPresent()) {
       Participant rawParticipant = participant.get();
       rawParticipant.setIsConfirmed(true);
-      rawParticipant.setEmail(payload.name());
-      rawParticipant.setName(payload.email());
+      rawParticipant.setName(payload.name());
 
       this.repository.save(rawParticipant);
 
